@@ -1,26 +1,26 @@
 package pronwords
 
 import (
-    "fmt"
-    "os"
-    "bufio"
-    "strings"
+        "fmt"
+        "os"
+        "bufio"
+        "strings"
 )
 
 type Pronouncable struct {
-    unigram map[string]int
-    bigram map[string]int
-    trigram map[string]int
+    unigram map[string]int // Mapping of unigrams to the number of occurrences.
+    bigram map[string]int // Mapping of bigrams to the number of occurrences.
+    trigram map[string]int // Mapping of trigrams to the number of occurrences.
 
-    unisum int
-    bisum int
-    trisum int
+    unisum int // Sum of all occurences of unigrams.
+    bisum int // Sum of all occurences of bigrams.
+    trisum int // Sum of all occurences of trigrams.
 
-    sumDirty bool
+    sumDirty bool // Flag whether the sums are dirty and need updating.
 
-    uniweight float64
-    biweight float64
-    triweight float64
+    uniweight float64 // Weighting of matched unigram occurences.
+    biweight float64 // Weighting of matched bigram occurences.
+    triweight float64 // Weighting of matched trigram occurences.
 }
 
 const (
@@ -41,6 +41,7 @@ func NewPronouncable() *Pronouncable {
     }
 }
 
+// AddWordList goes through a list of words and updates n-gram occurences.
 func (p *Pronouncable) AddWordList(path string) {
     file, err := os.Open(path)
     if err != nil {
@@ -70,6 +71,8 @@ func (p *Pronouncable) AddWordList(path string) {
     p.sumDirty = true
 }
 
+// WordScore calculates a score that attempts to express how easy it is to
+// pronounce the word.
 func (p *Pronouncable) WordScore(word string) float64 {
     word = strings.ToUpper(word)
     if p.sumDirty {
@@ -91,6 +94,7 @@ func (p *Pronouncable) WordScore(word string) float64 {
     return score
 }
 
+// CalculateSum updates the unisum, bisum, and trisum aggregators.
 func (p *Pronouncable) calculateSum() {
     if !p.sumDirty {
         return
