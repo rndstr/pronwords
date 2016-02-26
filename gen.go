@@ -13,12 +13,12 @@ type Generator struct {
 }
 
 func NewGenerator(characters string, length int) *Generator {
-    bytes := deduplicate(characters)
+    bytes := deduplicateAndUpperToBytes(characters)
 
     return &Generator{
         charset: bytes,
         length: length,
-        levels: make([]int, len(bytes)),
+        levels: make([]int, length),
     }
 }
 
@@ -31,21 +31,27 @@ func (g *Generator) Next() string {
             g.word[i] = g.charset[0]
         }
     } else {
-        inc := g.length - 1
-        for inc >= 0 && g.levels[inc] == len(g.charset) - 1 {
-            inc--
+        // Start at the very end of the levels
+        col := g.length - 1
+        // Move towards the front while skipping all the columns with highest level
+        for col >= 0 && g.levels[col] == len(g.charset) - 1 {
+            col--
         }
 
-        if inc == -1 {
+        // Are all columns at the top level?
+        if col == -1 {
             return ""
         }
 
-        g.levels[inc] += 1
-        g.word[inc] = g.charset[g.levels[inc]]
+        // Increase level for the first level from the back not at the top.
+        g.levels[col]++
+        g.word[col] = g.charset[g.levels[col]]
 
-        if inc != g.length - 1 {
-            g.levels[inc+1] = 0
-            g.word[inc+1] = g.charset[0]
+        // All levels behind col are at the top. Since we modified the level at col,
+        // we can reset all the levels behind col.
+        for c := col + 1; c < g.length; c++ {
+            g.levels[c] = 0
+            g.word[c] = g.charset[0]
         }
     }
 
@@ -54,13 +60,13 @@ func (g *Generator) Next() string {
 
 // Count returns the number of words it will generate.
 func (g *Generator) Count() int {
-    return math.Pow(len(charset), length)
+    return int(math.Pow(float64(len(g.charset)), float64(g.length)))
 }
 
 
 // Deduplicate removes duplicate characters in string. It also converts the string
 // into a byte array.
-func deduplicate(str string) []byte {
+func deduplicateAndUpperToBytes(str string) []byte {
     seen := map[byte]bool{}
     characters := []byte{}
     upperCharacters := strings.ToUpper(str)
