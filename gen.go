@@ -22,10 +22,10 @@ func NewGenerator(characters string, length int) *Generator {
     }
 }
 
-// Next returns the next generated word.
+// Next generates word. It returns the generated word in all uppercase as string.
 func (g *Generator) Next() string {
     if g.word == nil {
-        // initialize word and first generation
+        // Populate first word
         g.word = make([]byte, g.length)
         for i := 0; i < g.length; i += 1 {
             g.word[i] = g.charset[0]

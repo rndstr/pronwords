@@ -41,8 +41,15 @@ func NewPronouncable() *Pronouncable {
     }
 }
 
-// AddWordList goes through a list of words and updates n-gram occurences.
-func (p *Pronouncable) AddWordList(path string) {
+// SetWeights updates the weight distribution of the n-grams.
+func (p *Pronouncable) SetWeights(uni, bi, tri float64) {
+    p.uniweight = uni
+    p.biweight = bi
+    p.triweight = tri
+}
+
+// AddWordListFile takes a file path and scans the words, recording their n-grams.
+func (p *Pronouncable) AddWordListFile(path string) {
     file, err := os.Open(path)
     if err != nil {
         panic(err)
@@ -52,16 +59,8 @@ func (p *Pronouncable) AddWordList(path string) {
     scanner.Split(bufio.ScanWords)
 
     for scanner.Scan() {
-        word := strings.ToUpper(scanner.Text())
-        for i := 0; i < len(word); i += 1 {
-            if i < len(word) - 2 {
-                p.trigram[word[i:i+3]] += 1
-            }
-            if i < len(word) - 1 {
-                p.bigram[word[i:i+2]] += 1
-            }
-            p.unigram[word[i:i+1]] += 1
-    }
+        word := scanner.Text()
+        p.AddWord(word)
     }
 
     if err := scanner.Err(); err != nil {
@@ -69,6 +68,21 @@ func (p *Pronouncable) AddWordList(path string) {
 	}
 
     p.sumDirty = true
+}
+
+// AddWord records n-grams of the given word.
+func (p *Pronouncable) AddWord(word string) {
+    word = strings.ToUpper(word)
+
+    for i := 0; i < len(word); i += 1 {
+        if i < len(word) - 2 {
+            p.trigram[word[i:i+3]] += 1
+        }
+        if i < len(word) - 1 {
+            p.bigram[word[i:i+2]] += 1
+        }
+        p.unigram[word[i:i+1]] += 1
+    }
 }
 
 // WordScore calculates a score that attempts to express how easy it is to
