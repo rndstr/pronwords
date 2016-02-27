@@ -4,6 +4,7 @@ import (
         "fmt"
         "os"
         "bufio"
+        "io"
         "strings"
 )
 
@@ -49,13 +50,8 @@ func (p *Pronouncable) SetWeights(uni, bi, tri float64) {
 }
 
 // AddWordListFile takes a file path and scans the words, recording their n-grams.
-func (p *Pronouncable) AddWordListFile(path string) {
-    file, err := os.Open(path)
-    if err != nil {
-        panic(err)
-    }
-
-    scanner := bufio.NewScanner(file)
+func (p *Pronouncable) AddWordList(reader io.Reader) {
+    scanner := bufio.NewScanner(reader)
     scanner.Split(bufio.ScanWords)
 
     for scanner.Scan() {
@@ -64,10 +60,8 @@ func (p *Pronouncable) AddWordListFile(path string) {
     }
 
     if err := scanner.Err(); err != nil {
-		fmt.Fprintln(os.Stderr, "reading file %s:", path, err)
-	}
-
-    p.sumDirty = true
+        fmt.Fprintln(os.Stderr, "reading word list:", err)
+    }
 }
 
 // AddWord records n-grams of the given word.
@@ -83,6 +77,8 @@ func (p *Pronouncable) AddWord(word string) {
         }
         p.unigram[word[i:i+1]] += 1
     }
+
+    p.sumDirty = true
 }
 
 // WordScore calculates a score that attempts to express how easy it is to
@@ -94,18 +90,29 @@ func (p *Pronouncable) WordScore(word string) float64 {
     }
 
     score := 0.0
-
     for i := 0; i < len(word); i += 1 {
-        if i <= len(word) - 3 {
-            score += 5.0 * float64(p.trigram[word[i:i+3]]) / float64(p.trisum)
+        // If character does not exist in unigram, it is unknown and we therefore
+        // cannot say anything about its pronouncability anymore.
+        if p.unigram[word[i:i+1]] == 0 {
+            return 0.0
         }
-        if i <= len(word) - 2 {
-            score += float64(p.bigram[word[i:i+2]]) / float64(p.bisum)
+
+        if i < len(word) - 2 {
+            score += p.triweight * float64(p.trigram[word[i:i+3]]) / float64(p.trisum)
         }
-        score += float64(p.unigram[word[i:i+1]]) / float64(p.unisum)
+        if i < len(word) - 1 {
+            score += p.biweight * float64(p.bigram[word[i:i+2]]) / float64(p.bisum)
+        }
+        score += p.uniweight * float64(p.unigram[word[i:i+1]]) / float64(p.unisum)
     }
 
     return score
+}
+
+// IsPronouncable determines whether a word is pronouncable by comparing the word
+// score to the give threshold.
+func (p *Pronouncable) IsPronouncable(word string, threshold float64) bool {
+    return p.WordScore(word) >= threshold
 }
 
 // CalculateSum updates the unisum, bisum, and trisum aggregators.
