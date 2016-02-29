@@ -28,18 +28,19 @@ func TestWordScore(t *testing.T) {
     p := NewPronouncable()
     p.AddWord("woo")
 
-    assert.Equal(t, 2.5, p.WordScore("wo"))
-    assert.Equal(t, 1.0/3.0, p.WordScore("w"))
+    assert.Equal(t, 1.5, p.WordScore("wo"))
+    assert.Equal(t, 0.5, p.WordScore("w"))
     assert.Equal(t, 0.0, p.WordScore("woz"), "unknown character should give score 0")
 }
 
 func TestIsPronouncable(t *testing.T) {
     p := NewPronouncable()
-    p.AddWord("woo")
+    p.AddWord("wooh")
 
-    assert.True(t, p.IsPronouncable("wo", 2.5))
-    assert.True(t, p.IsPronouncable("wo", 2.0))
-    assert.False(t, p.IsPronouncable("wo", 2.6))
+    assert.Equal(t, 2.25, p.WordScore("woo"))
+    assert.True(t, p.IsPronouncable("woo", 2.25))
+    assert.True(t, p.IsPronouncable("woo", 2.2))
+    assert.False(t, p.IsPronouncable("woo", 2.3))
 }
 
 func TestAddWordList(t *testing.T) {
@@ -56,10 +57,10 @@ func TestSetWeights(t *testing.T) {
     p.AddWord("wools bools")
 
     p.SetWeights(1, 0, 0)
-    assert.Equal(t, 0.8181818181818182, p.WordScore("woo"))
+    assert.Equal(t, 0.375, p.WordScore("woo"))
     p.SetWeights(0, 1, 0)
-    assert.Equal(t, 0.30000000000000004, p.WordScore("woo"))
+    assert.Equal(t, 0.25, p.WordScore("woo"))
     p.SetWeights(0, 0, 1)
-    assert.Equal(t, 0.1111111111111111, p.WordScore("woo"))
+    assert.Equal(t, 0.08333333333333333, p.WordScore("woo"))
 }
 

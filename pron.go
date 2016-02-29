@@ -13,11 +13,10 @@ type Pronouncable struct {
     bigram map[string]int // Mapping of bigrams to the number of occurrences.
     trigram map[string]int // Mapping of trigrams to the number of occurrences.
 
-    unisum int // Sum of all occurences of unigrams.
-    bisum int // Sum of all occurences of bigrams.
-    trisum int // Sum of all occurences of trigrams.
-
-    sumDirty bool // Flag whether the sums are dirty and need updating.
+    uninorm float64 // Normalization for the unigram score.
+    binorm float64 //  Normalization for the bigram score.
+    trinorm float64 // Normalization for the trigram score.
+    normdirty bool // Flag whether the norms are dirty and need updating.
 
     uniweight float64 // Weighting of matched unigram occurences.
     biweight float64 // Weighting of matched bigram occurences.
@@ -25,9 +24,9 @@ type Pronouncable struct {
 }
 
 const (
-    UniWeightDefault = 1.0
-    BiWeightDefault = 3.0
-    TriWeightDefault = 5.0
+        UniWeightDefault = 1.0
+        BiWeightDefault = 3.0
+        TriWeightDefault = 5.0
 )
 
 func NewPronouncable() *Pronouncable {
@@ -49,7 +48,7 @@ func (p *Pronouncable) SetWeights(uni, bi, tri float64) {
     p.triweight = tri
 }
 
-// AddWordListFile takes a file path and scans the words, recording their n-grams.
+// AddWordList takes a reader and scans it word by word, recording their n-grams.
 func (p *Pronouncable) AddWordList(reader io.Reader) {
     scanner := bufio.NewScanner(reader)
     scanner.Split(bufio.ScanWords)
@@ -78,57 +77,76 @@ func (p *Pronouncable) AddWord(word string) {
         p.unigram[word[i:i+1]] += 1
     }
 
-    p.sumDirty = true
+    p.normdirty = true
 }
 
 // WordScore calculates a score that attempts to express how easy it is to
 // pronounce the word.
 func (p *Pronouncable) WordScore(word string) float64 {
     word = strings.ToUpper(word)
-    if p.sumDirty {
-        p.calculateSum()
+    if p.normdirty {
+        p.calculateNormalization()
     }
 
     score := 0.0
     for i := 0; i < len(word); i += 1 {
-        // If character does not exist in unigram, it is unknown and we therefore
-        // cannot say anything about its pronouncability anymore.
+        // If a character does not exist in unigram, it is unclassifiable and
+        // any statement about pronounceability
+        // cannot say anything about its pronouncability anymore. Just bail.
         if p.unigram[word[i:i+1]] == 0 {
             return 0.0
         }
 
         if i < len(word) - 2 {
-            score += p.triweight * float64(p.trigram[word[i:i+3]]) / float64(p.trisum)
+            score += p.triweight * float64(p.trigram[word[i:i+3]]) / p.trinorm
         }
         if i < len(word) - 1 {
-            score += p.biweight * float64(p.bigram[word[i:i+2]]) / float64(p.bisum)
+            score += p.biweight * float64(p.bigram[word[i:i+2]]) / p.binorm
         }
-        score += p.uniweight * float64(p.unigram[word[i:i+1]]) / float64(p.unisum)
+        score += p.uniweight * float64(p.unigram[word[i:i+1]]) / p.uninorm
     }
 
-    return score
+    // Normalize by how many scores have been computed
+    lengthnorm := 1.0
+    if len(word) > 1 {
+        lengthnorm = float64(len(word)-1) * 3.0
+    }
+
+    return score / lengthnorm
 }
 
 // IsPronouncable determines whether a word is pronouncable by comparing the word
-// score to the give threshold.
+// score to the given threshold.
 func (p *Pronouncable) IsPronouncable(word string, threshold float64) bool {
     return p.WordScore(word) >= threshold
 }
 
-// CalculateSum updates the unisum, bisum, and trisum aggregators.
-func (p *Pronouncable) calculateSum() {
-    if !p.sumDirty {
+// CalculateNormalization updates the uninorm, binorm, and trinorm aggregators.
+// They influences score calculation by dividing the n-gram count.
+func (p *Pronouncable) calculateNormalization() {
+    if !p.normdirty {
         return
     }
 
-    p.unisum = 0
-    p.bisum = 0
-    p.trisum = 0
+    p.uninorm = 0
+    p.binorm = 0
+    p.trinorm = 0
 
-    for _,o := range p.unigram { p.unisum += o }
-    for _,o := range p.bigram { p.bisum += o }
-    for _,o := range p.trigram { p.trisum += o }
+    p.uninorm = maxInGram(p.unigram)
+    p.binorm = maxInGram(p.bigram)
+    p.trinorm = maxInGram(p.trigram)
 
-    p.sumDirty = false
+    p.normdirty = false
+}
+
+func maxInGram(gram map[string]int) float64 {
+    max := 0
+    for _,o := range gram {
+        if o > max {
+            max = o
+        }
+    }
+
+    return float64(max)
 }
 

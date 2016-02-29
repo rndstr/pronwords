@@ -12,14 +12,20 @@ type Generator struct {
     levels  []int // Mapping of each character in `word` to the n-th character in `charset`.
 }
 
-func NewGenerator(characters string, length int) *Generator {
-    bytes := deduplicateAndUpperToBytes(characters)
+func NewGenerator(length int) *Generator {
 
     return &Generator{
-        charset: bytes,
+        charset: []byte("abcdefghijklmnopqrstuvwxyz"),
         length: length,
         levels: make([]int, length),
     }
+}
+
+func (g *Generator) SetCharacters(characters string) {
+    if g.word != nil {
+        // Error: Charcters must be set before starting generation
+    }
+    g.charset = deduplicateAndUpperToBytes(characters)
 }
 
 // Next generates word. It returns the generated word in all uppercase as string.
