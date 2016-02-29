@@ -15,7 +15,7 @@ type Generator struct {
 func NewGenerator(length int) *Generator {
 
     return &Generator{
-        charset: []byte("abcdefghijklmnopqrstuvwxyz"),
+        charset: []byte("ABCDEFGHIJKLMNOPQRSTUVWXYZ"),
         length: length,
         levels: make([]int, length),
     }
