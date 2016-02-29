@@ -65,7 +65,7 @@ func (p *Pronouncable) AddWordList(reader io.Reader) {
 
 // AddWord records n-grams of the given word.
 func (p *Pronouncable) AddWord(word string) {
-    word = strings.ToUpper(word)
+    word = strings.ToLower(word)
 
     for i := 0; i < len(word); i += 1 {
         if i < len(word) - 2 {
@@ -83,7 +83,7 @@ func (p *Pronouncable) AddWord(word string) {
 // WordScore calculates a score that attempts to express how easy it is to
 // pronounce the word.
 func (p *Pronouncable) WordScore(word string) float64 {
-    word = strings.ToUpper(word)
+    word = strings.ToLower(word)
     if p.normdirty {
         p.calculateNormalization()
     }

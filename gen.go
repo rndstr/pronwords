@@ -15,7 +15,7 @@ type Generator struct {
 func NewGenerator(length int) *Generator {
 
     return &Generator{
-        charset: []byte("ABCDEFGHIJKLMNOPQRSTUVWXYZ"),
+        charset: []byte("abcdefghijklmnopqrstuvwxyz"),
         length: length,
         levels: make([]int, length),
     }
@@ -25,7 +25,7 @@ func (g *Generator) SetCharacters(characters string) {
     if g.word != nil {
         // Error: Charcters must be set before starting generation
     }
-    g.charset = deduplicateAndUpperToBytes(characters)
+    g.charset = deduplicateAndLowerToBytes(characters)
 }
 
 // Next generates word. It returns the generated word in all uppercase as string.
@@ -72,17 +72,17 @@ func (g *Generator) Count() int {
 
 // Deduplicate removes duplicate characters in string. It also converts the string
 // into a byte array.
-func deduplicateAndUpperToBytes(str string) []byte {
+func deduplicateAndLowerToBytes(str string) []byte {
     seen := map[byte]bool{}
-    characters := []byte{}
-    upperCharacters := strings.ToUpper(str)
-    for i := 0; i < len(upperCharacters); i += 1 {
-        value := upperCharacters[i]
+    bytes := []byte{}
+    characters := strings.ToLower(str)
+    for i := 0; i < len(characters); i++ {
+        value := characters[i]
         if !seen[value] {
-            characters = append(characters, value)
+            bytes = append(bytes, value)
             seen[value] = true
         }
     }
-    return characters
+    return bytes
 }
 
