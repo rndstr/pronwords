@@ -1,4 +1,4 @@
-# pronword [![GoDoc](https://godoc.org/github.com/rndstr/pronwords?status.svg)](https://godoc.org/github.com/rndstr/pronwords) [![Build Status](https://travis-ci.org/rndstr/pronwords.svg?branch=master)](https://travis-ci.org/rndstr/pronwords) [![Coverage](http://gocover.io/_badge/github.com/rndstr/pronwords?0)](http://gocover.io/github.com/rndstr/pronwords)
+# pronwords [![GoDoc](https://godoc.org/github.com/rndstr/pronwords?status.svg)](https://godoc.org/github.com/rndstr/pronwords) [![Build Status](https://travis-ci.org/rndstr/pronwords.svg?branch=master)](https://travis-ci.org/rndstr/pronwords) [![Coverage](https://gocover.io/_badge/github.com/rndstr/pronwords)](https://gocover.io/github.com/rndstr/pronwords)
 
 `pronwords` is a Go library and CLI about pronounceable words.
 
