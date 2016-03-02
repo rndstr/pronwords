@@ -119,13 +119,14 @@ func main() {
 		var max, min float64
 		hideScores := c.Bool("hide-scores")
 		for word := g.Next(); word != ""; word = g.Next() {
-			if s := p.WordScore(word); !hasThreshold || s >= threshold {
-				if s > max {
-					max = s
-				}
-				if s < min {
-					min = s
-				}
+			s := p.WordScore(word)
+			if s > max {
+				max = s
+			}
+			if s < min {
+				min = s
+			}
+			if !hasThreshold || s >= threshold {
 				if hideScores {
 					fmt.Println(word)
 				} else {
