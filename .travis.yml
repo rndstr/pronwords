@@ -2,14 +2,12 @@ language: go
 sudo: false
 
 go:
-- 1.0.3
-- 1.1.2
-- 1.2.2
-- 1.3.3
-- 1.4.2
-- 1.5.1
-- tip
+  - 1.3
+  - 1.4
+  - 1.5
+  - 1.6
+  - top
 
 script:
-- go vet ./...
-- go test -v ./...
+  - go vet ./...
+  - go test -v ./...
