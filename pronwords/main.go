@@ -64,48 +64,82 @@ func main() {
 		if hasThreshold {
 			threshold, err = strconv.ParseFloat(c.String("threshold"), 64)
 			if err != nil {
-				fmt.Fprintln(os.Stderr, "error parsing --threshold, please provide a decimal number with '.' as decimal point")
+				fmt.Fprintln(os.Stderr, "error: --threshold, please provide a decimal number with '.' as decimal point")
 				return
 			}
 		}
 
-		// percentile? -> threshold
+		// percentile or top? -> threshold
 		percentile := c.Int("percentile")
 		if percentile < 0 || percentile >= 100 {
-			fmt.Fprintln(os.Stderr, "error parsing --percentile, please provide a number between 0 and 99")
+			fmt.Fprintln(os.Stderr, "error: --percentile, please provide a number between 0 and 99")
 			return
 		}
-		if percentile > 0 {
-			fmt.Fprint(os.Stderr, "        // determining threshold for ", percentile, "th percentile… ")
+		top := c.Int("top")
+		if top < 0 {
+			fmt.Fprintln(os.Stderr, "error: --top, please provide a number greater than 0")
+			return
+		}
+
+		if percentile != 0 && top != 0 {
+			fmt.Fprintln(os.Stderr, "error: --top -- percentile, you cannot use both")
+			return
+
+		}
+
+		if percentile > 0 || top > 0 {
+			if percentile > 0 {
+				fmt.Fprint(os.Stderr, "        // determining threshold for ", percentile, "th percentile… ")
+			} else if top > 0 {
+				fmt.Fprint(os.Stderr, "        // determining threshold for top ", top, "… ")
+
+			}
 			scores := make([]float64, 0)
 			for word := g.Next(); word != ""; word = g.Next() {
-				s := p.WordScore(word)
-				if !hasThreshold || s >= threshold {
+				if s := p.WordScore(word); !hasThreshold || s >= threshold {
 					scores = append(scores, p.WordScore(word)) // let's hope append() increases capacity not one by one?
 				}
 			}
 
 			sort.Sort(sort.Float64Slice(scores))
-			threshold = scores[int(math.Floor(float64(percentile)/100.0*float64(len(scores))))]
+			if percentile > 0 {
+				threshold = scores[int(math.Floor(float64(percentile)/100.0*float64(len(scores))))]
+				hasThreshold = true
+			} else if top > 0 && top < len(scores) {
+				threshold = scores[len(scores) - top]
+				hasThreshold = true
+			}
 			fmt.Fprintln(os.Stderr, threshold)
-			hasThreshold = true // we now have a threshold
 
 			g.Reset() // start over
 		}
 
 		// print scores
-		found := 0
+		var match int
+		var max, min float64
+		hideScores := c.Bool("hide-scores")
 		for word := g.Next(); word != ""; word = g.Next() {
-			s := p.WordScore(word)
-			if !hasThreshold || s >= threshold {
-				fmt.Printf("%v %v\n", word, s)
-				found++
+			if s := p.WordScore(word); !hasThreshold || s >= threshold {
+				if s > max {
+					max = s
+				}
+				if s < min {
+					min = s
+				}
+				if hideScores {
+					fmt.Println(word)
+				} else {
+					fmt.Printf("%v %v\n", word, s)
+				}
+				match++
 			}
 		}
 
+		count := g.Count()
 		fmt.Fprintln(os.Stderr)
-		fmt.Fprint(os.Stderr, "        // Matched ", found, "/", g.Count(), " words")
+		fmt.Fprint(os.Stderr, "        // Matched ", match, "/", count, " words (", int(100.0 * float64(match)/float64(count)), "%)")
 		fmt.Fprintln(os.Stderr)
+		fmt.Fprintln(os.Stderr, "        // Scores min =", min, "max =", max)
 	}
 	app.Flags = []cli.Flag{
 		cli.IntFlag{
@@ -130,6 +164,15 @@ func main() {
 			Name:  "percentile, p",
 			Value: 0,
 			Usage: "only show scores in given percentile",
+		},
+		cli.IntFlag{
+			Name: "top",
+			Value: 0,
+			Usage: "only print top N words",
+		},
+		cli.BoolFlag{
+			Name: "hide-scores",
+			Usage: "do not display scores",
 		},
 	}
 
