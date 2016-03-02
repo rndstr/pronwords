@@ -11,16 +11,16 @@ func TestAddWord(t *testing.T) {
 	p := NewPronounceable()
 	p.AddWord("fool")
 
-	assert.Equal(t, 1, p.unigram["F"])
-	assert.Equal(t, 2, p.unigram["O"])
-	assert.Equal(t, 1, p.unigram["L"])
+	assert.Equal(t, 1, p.unigram["f"])
+	assert.Equal(t, 2, p.unigram["o"])
+	assert.Equal(t, 1, p.unigram["l"])
 
-	assert.Contains(t, p.bigram, "FO")
-	assert.Contains(t, p.bigram, "OO")
-	assert.Contains(t, p.bigram, "OL")
+	assert.Contains(t, p.bigram, "fo")
+	assert.Contains(t, p.bigram, "oo")
+	assert.Contains(t, p.bigram, "ol")
 
-	assert.Contains(t, p.trigram, "FOO")
-	assert.Contains(t, p.trigram, "OOL")
+	assert.Contains(t, p.trigram, "foo")
+	assert.Contains(t, p.trigram, "ool")
 }
 
 func TestWordScore(t *testing.T) {
@@ -46,9 +46,9 @@ func TestAddWordList(t *testing.T) {
 	p := NewPronounceable()
 	p.AddWordList(bytes.NewBufferString("WOO MOO"))
 
-	assert.Equal(t, 1, p.unigram["W"])
-	assert.Equal(t, 4, p.unigram["O"])
-	assert.Equal(t, 1, p.unigram["M"])
+	assert.Equal(t, 1, p.unigram["w"])
+	assert.Equal(t, 4, p.unigram["o"])
+	assert.Equal(t, 1, p.unigram["m"])
 }
 
 func TestSetWeights(t *testing.T) {

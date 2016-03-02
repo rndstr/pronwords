@@ -31,7 +31,7 @@ func TestCharSetShorterThanWordLength(t *testing.T) {
 
 func assertGeneratedWords(t *testing.T, characters, expectedCommaSeparated string, length int) {
 	var (
-		expectedList = strings.Split(strings.ToUpper(expectedCommaSeparated), ",")
+		expectedList = strings.Split(expectedCommaSeparated, ",")
 		words        = make(map[string]bool, len(expectedList))
 	)
 
@@ -39,7 +39,8 @@ func assertGeneratedWords(t *testing.T, characters, expectedCommaSeparated strin
 		words[word] = true
 	}
 
-	g := NewGenerator(characters, length)
+	g := NewGenerator(length)
+	g.SetCharacters(characters)
 	count := g.Count()
 	assert.Equal(t, len(words), count)
 
