@@ -21,6 +21,7 @@ func NewGenerator(length int) *Generator {
 	}
 }
 
+// SetCharacters changes the default character set of available chars.
 func (g *Generator) SetCharacters(characters string) {
 	if g.word != nil {
 		// Error: Charcters must be set before starting generation
@@ -28,12 +29,21 @@ func (g *Generator) SetCharacters(characters string) {
 	g.charset = deduplicateAndLowerToBytes(characters)
 }
 
-// Next generates word. It returns the generated word in all uppercase as string.
+// Reset restores the initial state and makes the generator to start over at word 1.
+func (g *Generator) Reset() {
+	g.word = nil
+
+	for i := 0; i < g.length; i++ {
+		g.levels[i] = 0
+	}
+}
+
+// Next generates word. It returns the generated word in all uppercase as string. Returns the empty string as last word.
 func (g *Generator) Next() string {
 	if g.word == nil {
 		// Populate first word
 		g.word = make([]byte, g.length)
-		for i := 0; i < g.length; i += 1 {
+		for i := 0; i < g.length; i++ {
 			g.word[i] = g.charset[0]
 		}
 	} else {
