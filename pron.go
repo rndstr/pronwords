@@ -24,9 +24,9 @@ type Pronounceable struct {
 }
 
 const (
-	UniWeightDefault = 1.0
-	BiWeightDefault  = 3.0
-	TriWeightDefault = 5.0
+	uniWeightDefault = 1.0
+	biWeightDefault  = 3.0
+	triWeightDefault = 5.0
 )
 
 func NewPronounceable() *Pronounceable {
@@ -35,13 +35,13 @@ func NewPronounceable() *Pronounceable {
 		bigram:  make(map[string]int),
 		trigram: make(map[string]int),
 
-		uniweight: UniWeightDefault,
-		biweight:  BiWeightDefault,
-		triweight: TriWeightDefault,
+		uniweight: uniWeightDefault,
+		biweight:  biWeightDefault,
+		triweight: triWeightDefault,
 	}
 }
 
-// SetWeights updates the weight distribution of the n-grams.
+// SetWeights updates the weight distribution of the n-grams. Defaults are 1 (uni), 3 (bi), 5 (tri).
 func (p *Pronounceable) SetWeights(uni, bi, tri float64) {
 	p.uniweight = uni
 	p.biweight = bi
