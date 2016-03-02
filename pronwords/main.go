@@ -1,14 +1,14 @@
 package main
 
 import (
-	"fmt"
-	"os"
-	"strconv"
 	"errors"
-	"sort"
-	"math"
-	"github.com/rndstr/pronwords"
+	"fmt"
 	"github.com/codegangsta/cli"
+	"github.com/rndstr/pronwords"
+	"math"
+	"os"
+	"sort"
+	"strconv"
 )
 
 func createGenerator(c *cli.Context) (*pronwords.Generator, error) {
@@ -86,7 +86,7 @@ func main() {
 			}
 
 			sort.Sort(sort.Float64Slice(scores))
-			threshold = scores[int(math.Floor(float64(percentile) / 100.0 * float64(len(scores))))]
+			threshold = scores[int(math.Floor(float64(percentile)/100.0*float64(len(scores))))]
 			fmt.Fprintln(os.Stderr, threshold)
 			hasThreshold = true // we now have a threshold
 
@@ -109,25 +109,25 @@ func main() {
 	}
 	app.Flags = []cli.Flag{
 		cli.IntFlag{
-			Name: "length, n",
+			Name:  "length, n",
 			Usage: "generated word length",
 		},
 		cli.StringFlag{
-			Name: "characters, c",
+			Name:  "characters, c",
 			Value: "abcdefghijklmnopqrstuvwxyz",
 			Usage: "generated words character set",
 		},
 		cli.StringFlag{
-			Name: "corpus, i",
+			Name:  "corpus, i",
 			Usage: "path to the corpus containing text to learn from",
 		},
 		cli.StringFlag{
-			Name: "threshold, t",
+			Name:  "threshold, t",
 			Value: "",
 			Usage: "only show words with score >=threshold",
 		},
 		cli.IntFlag{
-			Name: "percentile, p",
+			Name:  "percentile, p",
 			Value: 0,
 			Usage: "only show scores in given percentile",
 		},
@@ -135,4 +135,3 @@ func main() {
 
 	app.Run(os.Args)
 }
-

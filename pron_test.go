@@ -1,8 +1,8 @@
 package pronwords
 
 import (
-	"testing"
 	"bytes"
+	"testing"
 
 	"github.com/stretchr/testify/assert"
 )
@@ -62,4 +62,3 @@ func TestSetWeights(t *testing.T) {
 	p.SetWeights(0, 0, 1)
 	assert.Equal(t, 0.08333333333333333, p.WordScore("woo"))
 }
-

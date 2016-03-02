@@ -1,8 +1,8 @@
 package pronwords
 
 import (
-	"testing"
 	"strings"
+	"testing"
 
 	"github.com/stretchr/testify/assert"
 )
@@ -32,7 +32,7 @@ func TestCharSetShorterThanWordLength(t *testing.T) {
 func assertGeneratedWords(t *testing.T, characters, expectedCommaSeparated string, length int) {
 	var (
 		expectedList = strings.Split(strings.ToUpper(expectedCommaSeparated), ",")
-		words = make(map[string]bool, len(expectedList))
+		words        = make(map[string]bool, len(expectedList))
 	)
 
 	for _, word := range expectedList {

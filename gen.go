@@ -1,8 +1,8 @@
 package pronwords
 
 import (
-	"strings"
 	"math"
+	"strings"
 )
 
 type Generator struct {
@@ -16,8 +16,8 @@ func NewGenerator(length int) *Generator {
 
 	return &Generator{
 		charset: []byte("abcdefghijklmnopqrstuvwxyz"),
-		length: length,
-		levels: make([]int, length),
+		length:  length,
+		levels:  make([]int, length),
 	}
 }
 
@@ -50,7 +50,7 @@ func (g *Generator) Next() string {
 		// Start at the very end of the levels
 		col := g.length - 1
 		// Move towards the front while skipping all the columns with highest level
-		for col >= 0 && g.levels[col] == len(g.charset) - 1 {
+		for col >= 0 && g.levels[col] == len(g.charset)-1 {
 			col--
 		}
 
@@ -79,7 +79,6 @@ func (g *Generator) Count() int {
 	return int(math.Pow(float64(len(g.charset)), float64(g.length)))
 }
 
-
 // Deduplicate removes duplicate characters in string. It also converts the string
 // into a byte array.
 func deduplicateAndLowerToBytes(str string) []byte {
@@ -95,4 +94,3 @@ func deduplicateAndLowerToBytes(str string) []byte {
 	}
 	return bytes
 }
-

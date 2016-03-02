@@ -1,42 +1,42 @@
 package pronwords
 
 import (
-	"fmt"
-	"os"
 	"bufio"
+	"fmt"
 	"io"
+	"os"
 	"strings"
 )
 
 type Pronounceable struct {
-	unigram   map[string]int // Mapping of unigrams to the number of occurrences.
-	bigram    map[string]int // Mapping of bigrams to the number of occurrences.
-	trigram   map[string]int // Mapping of trigrams to the number of occurrences.
+	unigram map[string]int // Mapping of unigrams to the number of occurrences.
+	bigram  map[string]int // Mapping of bigrams to the number of occurrences.
+	trigram map[string]int // Mapping of trigrams to the number of occurrences.
 
-	uninorm   float64        // Normalization for the unigram score.
-	binorm    float64        //  Normalization for the bigram score.
-	trinorm   float64        // Normalization for the trigram score.
-	normdirty bool           // Flag whether the norms are dirty and need updating.
+	uninorm   float64 // Normalization for the unigram score.
+	binorm    float64 //  Normalization for the bigram score.
+	trinorm   float64 // Normalization for the trigram score.
+	normdirty bool    // Flag whether the norms are dirty and need updating.
 
-	uniweight float64        // Weighting of matched unigram occurrences.
-	biweight  float64        // Weighting of matched bigram occurrences.
-	triweight float64        // Weighting of matched trigram occurrences.
+	uniweight float64 // Weighting of matched unigram occurrences.
+	biweight  float64 // Weighting of matched bigram occurrences.
+	triweight float64 // Weighting of matched trigram occurrences.
 }
 
 const (
 	UniWeightDefault = 1.0
-	BiWeightDefault = 3.0
+	BiWeightDefault  = 3.0
 	TriWeightDefault = 5.0
 )
 
 func NewPronounceable() *Pronounceable {
 	return &Pronounceable{
 		unigram: make(map[string]int),
-		bigram: make(map[string]int),
+		bigram:  make(map[string]int),
 		trigram: make(map[string]int),
 
 		uniweight: UniWeightDefault,
-		biweight: BiWeightDefault,
+		biweight:  BiWeightDefault,
 		triweight: TriWeightDefault,
 	}
 }
@@ -68,13 +68,13 @@ func (p *Pronounceable) AddWord(word string) {
 	word = strings.ToLower(word)
 
 	for i := 0; i < len(word); i += 1 {
-		if i < len(word) - 2 {
-			p.trigram[word[i:i + 3]] += 1
+		if i < len(word)-2 {
+			p.trigram[word[i:i+3]] += 1
 		}
-		if i < len(word) - 1 {
-			p.bigram[word[i:i + 2]] += 1
+		if i < len(word)-1 {
+			p.bigram[word[i:i+2]] += 1
 		}
-		p.unigram[word[i:i + 1]] += 1
+		p.unigram[word[i:i+1]] += 1
 	}
 
 	p.normdirty = true
@@ -93,23 +93,23 @@ func (p *Pronounceable) WordScore(word string) float64 {
 		// If a character does not exist in unigram, it is unclassifiable and
 		// any statement about pronounceability
 		// cannot say anything about its pronounceability anymore. Just bail.
-		if p.unigram[word[i:i + 1]] == 0 {
+		if p.unigram[word[i:i+1]] == 0 {
 			return 0.0
 		}
 
-		if i < len(word) - 2 {
-			score += p.triweight * float64(p.trigram[word[i:i + 3]]) / p.trinorm
+		if i < len(word)-2 {
+			score += p.triweight * float64(p.trigram[word[i:i+3]]) / p.trinorm
 		}
-		if i < len(word) - 1 {
-			score += p.biweight * float64(p.bigram[word[i:i + 2]]) / p.binorm
+		if i < len(word)-1 {
+			score += p.biweight * float64(p.bigram[word[i:i+2]]) / p.binorm
 		}
-		score += p.uniweight * float64(p.unigram[word[i:i + 1]]) / p.uninorm
+		score += p.uniweight * float64(p.unigram[word[i:i+1]]) / p.uninorm
 	}
 
 	// Normalize by how many scores have been computed
 	lengthnorm := 1.0
 	if len(word) > 1 {
-		lengthnorm = float64(len(word) - 1) * 3.0
+		lengthnorm = float64(len(word)-1) * 3.0
 	}
 
 	return score / lengthnorm
@@ -149,4 +149,3 @@ func maxInGram(gram map[string]int) float64 {
 
 	return float64(max)
 }
-
