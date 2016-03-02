@@ -24,7 +24,7 @@ func NewGenerator(length int) *Generator {
 // SetCharacters changes the default character set of available chars.
 func (g *Generator) SetCharacters(characters string) {
 	if g.word != nil {
-		// Error: Charcters must be set before starting generation
+		panic("SetCharacters() called after generation started. Either call Reset() or create a new instance.")
 	}
 	g.charset = deduplicateAndLowerToBytes(characters)
 }
@@ -38,7 +38,8 @@ func (g *Generator) Reset() {
 	}
 }
 
-// Next generates word. It returns the generated word in all uppercase as string. Returns the empty string as last word.
+// Next generates a word. It returns the generated word in all lowercase as string, and an empty word denotes the end
+// of the generation.
 func (g *Generator) Next() string {
 	if g.word == nil {
 		// Populate first word
@@ -79,8 +80,8 @@ func (g *Generator) Count() int {
 	return int(math.Pow(float64(len(g.charset)), float64(g.length)))
 }
 
-// Deduplicate removes duplicate characters in string. It also converts the string
-// into a byte array.
+// DeduplicateAndLowerToByts removes duplicate characters in a string. It also converts the string
+// into a byte array with all lower case characters.
 func deduplicateAndLowerToBytes(str string) []byte {
 	seen := map[byte]bool{}
 	bytes := []byte{}
