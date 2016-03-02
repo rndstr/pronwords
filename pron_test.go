@@ -8,7 +8,7 @@ import (
 )
 
 func TestAddWord(t *testing.T) {
-	p := NewPronouncable()
+	p := NewPronounceable()
 	p.AddWord("fool")
 
 	assert.Equal(t, 1, p.unigram["F"])
@@ -24,7 +24,7 @@ func TestAddWord(t *testing.T) {
 }
 
 func TestWordScore(t *testing.T) {
-	p := NewPronouncable()
+	p := NewPronounceable()
 	p.AddWord("woo")
 
 	assert.Equal(t, 1.5, p.WordScore("wo"))
@@ -33,17 +33,17 @@ func TestWordScore(t *testing.T) {
 }
 
 func TestIsPronouncable(t *testing.T) {
-	p := NewPronouncable()
+	p := NewPronounceable()
 	p.AddWord("wooh")
 
 	assert.Equal(t, 2.25, p.WordScore("woo"))
-	assert.True(t, p.IsPronouncable("woo", 2.25))
-	assert.True(t, p.IsPronouncable("woo", 2.2))
-	assert.False(t, p.IsPronouncable("woo", 2.3))
+	assert.True(t, p.IsPronounceable("woo", 2.25))
+	assert.True(t, p.IsPronounceable("woo", 2.2))
+	assert.False(t, p.IsPronounceable("woo", 2.3))
 }
 
 func TestAddWordList(t *testing.T) {
-	p := NewPronouncable()
+	p := NewPronounceable()
 	p.AddWordList(bytes.NewBufferString("WOO MOO"))
 
 	assert.Equal(t, 1, p.unigram["W"])
@@ -52,7 +52,7 @@ func TestAddWordList(t *testing.T) {
 }
 
 func TestSetWeights(t *testing.T) {
-	p := NewPronouncable()
+	p := NewPronounceable()
 	p.AddWord("wools bools")
 
 	p.SetWeights(1, 0, 0)

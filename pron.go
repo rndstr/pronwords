@@ -8,7 +8,7 @@ import (
 	"strings"
 )
 
-type Pronouncable struct {
+type Pronounceable struct {
 	unigram   map[string]int // Mapping of unigrams to the number of occurrences.
 	bigram    map[string]int // Mapping of bigrams to the number of occurrences.
 	trigram   map[string]int // Mapping of trigrams to the number of occurrences.
@@ -18,9 +18,9 @@ type Pronouncable struct {
 	trinorm   float64        // Normalization for the trigram score.
 	normdirty bool           // Flag whether the norms are dirty and need updating.
 
-	uniweight float64        // Weighting of matched unigram occurences.
-	biweight  float64        // Weighting of matched bigram occurences.
-	triweight float64        // Weighting of matched trigram occurences.
+	uniweight float64        // Weighting of matched unigram occurrences.
+	biweight  float64        // Weighting of matched bigram occurrences.
+	triweight float64        // Weighting of matched trigram occurrences.
 }
 
 const (
@@ -29,8 +29,8 @@ const (
 	TriWeightDefault = 5.0
 )
 
-func NewPronouncable() *Pronouncable {
-	return &Pronouncable{
+func NewPronounceable() *Pronounceable {
+	return &Pronounceable{
 		unigram: make(map[string]int),
 		bigram: make(map[string]int),
 		trigram: make(map[string]int),
@@ -42,14 +42,14 @@ func NewPronouncable() *Pronouncable {
 }
 
 // SetWeights updates the weight distribution of the n-grams.
-func (p *Pronouncable) SetWeights(uni, bi, tri float64) {
+func (p *Pronounceable) SetWeights(uni, bi, tri float64) {
 	p.uniweight = uni
 	p.biweight = bi
 	p.triweight = tri
 }
 
 // AddWordList takes a reader and scans it word by word, recording their n-grams.
-func (p *Pronouncable) AddWordList(reader io.Reader) {
+func (p *Pronounceable) AddWordList(reader io.Reader) {
 	scanner := bufio.NewScanner(reader)
 	scanner.Split(bufio.ScanWords)
 
@@ -64,7 +64,7 @@ func (p *Pronouncable) AddWordList(reader io.Reader) {
 }
 
 // AddWord records n-grams of the given word.
-func (p *Pronouncable) AddWord(word string) {
+func (p *Pronounceable) AddWord(word string) {
 	word = strings.ToLower(word)
 
 	for i := 0; i < len(word); i += 1 {
@@ -82,7 +82,7 @@ func (p *Pronouncable) AddWord(word string) {
 
 // WordScore calculates a score that attempts to express how easy it is to
 // pronounce the word.
-func (p *Pronouncable) WordScore(word string) float64 {
+func (p *Pronounceable) WordScore(word string) float64 {
 	word = strings.ToLower(word)
 	if p.normdirty {
 		p.calculateNormalization()
@@ -92,7 +92,7 @@ func (p *Pronouncable) WordScore(word string) float64 {
 	for i := 0; i < len(word); i += 1 {
 		// If a character does not exist in unigram, it is unclassifiable and
 		// any statement about pronounceability
-		// cannot say anything about its pronouncability anymore. Just bail.
+		// cannot say anything about its pronounceability anymore. Just bail.
 		if p.unigram[word[i:i + 1]] == 0 {
 			return 0.0
 		}
@@ -115,15 +115,15 @@ func (p *Pronouncable) WordScore(word string) float64 {
 	return score / lengthnorm
 }
 
-// IsPronouncable determines whether a word is pronouncable by comparing the word
+// IsPronounceable determines whether a word is pronounceable by comparing the word
 // score to the given threshold.
-func (p *Pronouncable) IsPronouncable(word string, threshold float64) bool {
+func (p *Pronounceable) IsPronounceable(word string, threshold float64) bool {
 	return p.WordScore(word) >= threshold
 }
 
 // CalculateNormalization updates the uninorm, binorm, and trinorm aggregators.
 // They influences score calculation by dividing the n-gram count.
-func (p *Pronouncable) calculateNormalization() {
+func (p *Pronounceable) calculateNormalization() {
 	if !p.normdirty {
 		return
 	}
