@@ -44,8 +44,8 @@ func createPronouncable(c *cli.Context) (*pronwords.Pronounceable, error) {
 func main() {
 	app := cli.NewApp()
 	app.Name = "pronwords"
-	app.Version = "0.2.0"
-	app.Usage = "find pronouncable words"
+	app.Version = "0.1.0"
+	app.Usage = "find pronounceable words"
 	app.Action = func(c *cli.Context) {
 		g, err := createGenerator(c)
 		if err != nil {
