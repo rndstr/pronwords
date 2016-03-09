@@ -89,10 +89,9 @@ func (p *Pronounceable) WordScore(word string) float64 {
 	}
 
 	score := 0.0
-	for i := 0; i < len(word); i += 1 {
-		// If a character does not exist in unigram, it is unclassifiable and
-		// any statement about pronounceability
-		// cannot say anything about its pronounceability anymore. Just bail.
+	for i := 0; i < len(word); i++ {
+		// If it contains a character outside of the allowed character set we cannot say anything
+		// about its pronounceableness
 		if p.unigram[word[i:i+1]] == 0 {
 			return 0.0
 		}
@@ -106,13 +105,8 @@ func (p *Pronounceable) WordScore(word string) float64 {
 		score += p.uniweight * float64(p.unigram[word[i:i+1]]) / p.uninorm
 	}
 
-	// Normalize by how many scores have been computed
-	lengthnorm := 1.0
-	if len(word) > 1 {
-		lengthnorm = float64(len(word)-1) * 3.0
-	}
-
-	return score / lengthnorm
+	// Normalize by how many scores have been summarized
+	return score / float64(len(word)-1) * 3.0
 }
 
 // IsPronounceable determines whether a word is pronounceable by comparing the word

@@ -86,7 +86,7 @@ func deduplicateAndLowerToBytes(str string) []byte {
 	seen := map[byte]bool{}
 	bytes := []byte{}
 	characters := strings.ToLower(str)
-	for i := 0; i < len(characters); i++ {
+	for i := range characters {
 		value := characters[i]
 		if !seen[value] {
 			bytes = append(bytes, value)
