@@ -8,7 +8,12 @@ import (
 	"math"
 	"os"
 	"sort"
-	"strconv"
+)
+
+const (
+	optTopDefault = 0
+	optPercentileDefault = 0
+	optThresholdDefault = -1.0
 )
 
 func createGenerator(c *cli.Context) (*pronwords.Generator, error) {
@@ -21,7 +26,6 @@ func createGenerator(c *cli.Context) (*pronwords.Generator, error) {
 }
 
 func createPronouncable(c *cli.Context) (*pronwords.Pronounceable, error) {
-	// Validate
 	if c.String("corpus") == "" {
 		return nil, errors.New("missing required option --corpus (see `pronwords help` for usage)")
 	}
@@ -41,10 +45,51 @@ func createPronouncable(c *cli.Context) (*pronwords.Pronounceable, error) {
 	return p, nil
 }
 
+func determineThreshold(percentile, top int, g *pronwords.Generator, p *pronwords.Pronounceable) float64 {
+	count := g.Count()
+	size := 0
+	if percentile > 0 {
+		fmt.Fprint(os.Stderr, "        // determining threshold for ", percentile, "th percentile… ")
+		size = int(math.Ceil(float64(100.0 - percentile) / 100.0 * float64(count)))
+	} else if top > 0 {
+		fmt.Fprint(os.Stderr, "        // determining threshold for top ", top, "… ")
+		size = top
+		if top > count {
+			fmt.Fprintln(os.Stderr, "none (--top larger than total count)")
+			return optThresholdDefault
+		}
+	}
+
+	scores := make([]float64, size)
+	minScoreIndex := -1
+	for word := g.Next(); word != ""; word = g.Next() {
+		s := p.WordScore(word)
+		if minScoreIndex == -1 {
+			minScoreIndex = 0
+		}
+		if s > scores[minScoreIndex] {
+			scores[minScoreIndex] = s
+			minScoreIndex = 0
+			for i := range scores {
+				if scores[i] < scores[minScoreIndex] {
+					minScoreIndex = i
+				}
+			}
+		}
+	}
+
+	sort.Sort(sort.Float64Slice(scores))
+
+	fmt.Fprintln(os.Stderr, scores[0])
+	g.Reset() // start over
+
+	return scores[0]
+}
+
 func main() {
 	app := cli.NewApp()
 	app.Name = "pronwords"
-	app.Version = "0.1.0"
+	app.Version = "0.1.1"
 	app.Usage = "find pronounceable words"
 	app.Action = func(c *cli.Context) {
 		g, err := createGenerator(c)
@@ -59,74 +104,42 @@ func main() {
 			return
 		}
 
-		hasThreshold := c.String("threshold") != ""
-		threshold := 0.0
-		if hasThreshold {
-			threshold, err = strconv.ParseFloat(c.String("threshold"), 64)
-			if err != nil {
-				fmt.Fprintln(os.Stderr, "error: --threshold, please provide a decimal number with '.' as decimal point")
-				return
-			}
+		threshold := c.Float64("threshold")
+		percentile := c.Int("percentile")
+		top := c.Int("top")
+		if (percentile != optPercentileDefault && top != optTopDefault) || (percentile != optPercentileDefault && threshold != optThresholdDefault) || (threshold != optThresholdDefault && top != optTopDefault) {
+			fmt.Fprintln(os.Stderr, "error: --top --percentile --threshold are mutually exclusive, you cannot combine them")
+			return
 		}
 
 		// percentile or top? -> threshold
-		percentile := c.Int("percentile")
 		if percentile < 0 || percentile >= 100 {
 			fmt.Fprintln(os.Stderr, "error: --percentile, please provide a number between 0 and 99")
 			return
 		}
-		top := c.Int("top")
 		if top < 0 {
 			fmt.Fprintln(os.Stderr, "error: --top, please provide a number greater than 0")
 			return
 		}
 
-		if percentile != 0 && top != 0 {
-			fmt.Fprintln(os.Stderr, "error: --top -- percentile, you cannot use both")
-			return
-
-		}
-
 		if percentile > 0 || top > 0 {
-			if percentile > 0 {
-				fmt.Fprint(os.Stderr, "        // determining threshold for ", percentile, "th percentile… ")
-			} else if top > 0 {
-				fmt.Fprint(os.Stderr, "        // determining threshold for top ", top, "… ")
-
-			}
-			scores := make([]float64, 0)
-			for word := g.Next(); word != ""; word = g.Next() {
-				if s := p.WordScore(word); !hasThreshold || s >= threshold {
-					scores = append(scores, p.WordScore(word)) // let's hope append() increases capacity not one by one?
-				}
-			}
-
-			sort.Sort(sort.Float64Slice(scores))
-			if percentile > 0 {
-				threshold = scores[int(math.Floor(float64(percentile)/100.0*float64(len(scores))))]
-				hasThreshold = true
-			} else if top > 0 && top < len(scores) {
-				threshold = scores[len(scores) - top]
-				hasThreshold = true
-			}
-			fmt.Fprintln(os.Stderr, threshold)
-
-			g.Reset() // start over
+			threshold = determineThreshold(percentile, top, g, p)
 		}
 
 		// print scores
 		var match int
-		var max, min float64
+		max := -1.0
+		min := math.MaxFloat64
 		hideScores := c.Bool("hide-scores")
 		for word := g.Next(); word != ""; word = g.Next() {
 			s := p.WordScore(word)
-			if s > max {
-				max = s
-			}
-			if s < min {
-				min = s
-			}
-			if !hasThreshold || s >= threshold {
+			if s >= threshold {
+				if s > max {
+					max = s
+				}
+				if s < min {
+					min = s
+				}
 				if hideScores {
 					fmt.Println(word)
 				} else {
@@ -138,7 +151,7 @@ func main() {
 
 		count := g.Count()
 		fmt.Fprintln(os.Stderr)
-		fmt.Fprint(os.Stderr, "        // Matched ", match, "/", count, " words (", int(100.0 * float64(match)/float64(count)), "%)")
+		fmt.Fprint(os.Stderr, "        // Matched ", match, "/", count, " words (", int(100.0 * float64(match) / float64(count)), "%)")
 		fmt.Fprintln(os.Stderr)
 		fmt.Fprintln(os.Stderr, "        // Scores min =", min, "max =", max)
 	}
@@ -156,19 +169,19 @@ func main() {
 			Name:  "corpus, i",
 			Usage: "path to the corpus containing text to learn from",
 		},
-		cli.StringFlag{
+		cli.Float64Flag{
 			Name:  "threshold, t",
-			Value: "",
+			Value: optThresholdDefault,
 			Usage: "only show words with score >=threshold",
 		},
 		cli.IntFlag{
 			Name:  "percentile, p",
-			Value: 0,
+			Value: optPercentileDefault,
 			Usage: "only show scores in given percentile",
 		},
 		cli.IntFlag{
 			Name: "top",
-			Value: 0,
+			Value: optTopDefault,
 			Usage: "only print top N words",
 		},
 		cli.BoolFlag{
