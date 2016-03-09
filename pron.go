@@ -105,8 +105,12 @@ func (p *Pronounceable) WordScore(word string) float64 {
 		score += p.uniweight * float64(p.unigram[word[i:i+1]]) / p.uninorm
 	}
 
+	if len(word) == 1 {
+		return score
+	}
+
 	// Normalize by how many scores have been summarized
-	return score / float64(len(word)-1) * 3.0
+	return score / (float64(len(word)-1) * 3.0)
 }
 
 // IsPronounceable determines whether a word is pronounceable by comparing the word
