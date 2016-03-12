@@ -23,6 +23,16 @@ func TestAddWord(t *testing.T) {
 	assert.Contains(t, p.trigram, "ool")
 }
 
+func TestAddWordNonWordCharacter(t *testing.T) {
+	p := NewPronounceable()
+	p.AddWord("woo.boo-loo/doo")
+
+	assert.Contains(t, p.trigram, "woo")
+	assert.Contains(t, p.trigram, "boo")
+	assert.Contains(t, p.trigram, "loo")
+	assert.Contains(t, p.trigram, "doo")
+}
+
 func TestWordScore(t *testing.T) {
 	p := NewPronounceable()
 	p.AddWord("woo")

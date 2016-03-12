@@ -6,6 +6,7 @@ import (
 	"io"
 	"os"
 	"strings"
+	"unicode"
 )
 
 type Pronounceable struct {
@@ -65,16 +66,24 @@ func (p *Pronounceable) AddWordList(reader io.Reader) {
 
 // AddWord records n-grams of the given word.
 func (p *Pronounceable) AddWord(word string) {
-	word = strings.ToLower(word)
+	// Further split by non-word characters
+	nonWordSplit := func(c rune) bool {
+		return !unicode.IsLetter(c)
+	}
 
-	for i := 0; i < len(word); i += 1 {
-		if i < len(word)-2 {
-			p.trigram[word[i:i+3]] += 1
+	word = strings.ToLower(word)
+	words := strings.FieldsFunc(word, nonWordSplit)
+
+	for _,w := range words {
+		for i := 0; i < len(w); i += 1 {
+			if i < len(w) - 2 {
+				p.trigram[w[i:i + 3]] += 1
+			}
+			if i < len(w) - 1 {
+				p.bigram[w[i:i + 2]] += 1
+			}
+			p.unigram[w[i:i + 1]] += 1
 		}
-		if i < len(word)-1 {
-			p.bigram[word[i:i+2]] += 1
-		}
-		p.unigram[word[i:i+1]] += 1
 	}
 
 	p.normdirty = true
