@@ -89,7 +89,7 @@ func determineThreshold(percentile, top int, g *pronwords.Generator, p *pronword
 func main() {
 	app := cli.NewApp()
 	app.Name = "pronwords"
-	app.Version = "0.1.1"
+	app.Version = "0.2.0"
 	app.Usage = "find pronounceable words"
 	app.Action = func(c *cli.Context) {
 		g, err := createGenerator(c)
